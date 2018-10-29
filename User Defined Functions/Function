@@ -1,0 +1,63 @@
+-- V1.0a AR
+-- 31.12.2016 12:14:52 AR V1.0b
+-- 04.04.2017 09:45:42 AR V1.0c
+
+generic = {
+  parameter = {
+    f = 'math.sin(a)'
+  },
+
+  init = function(self)
+    block.setInputsPinCount(1)
+    block.setOutputsPinCount(1)
+    block.modifyFlags('SupressStopFunctionCall', true)
+  end,
+
+  open = function(self)
+    gui.add('Info', 'Info', 'Function', [[
+General expression block.
+Use "a" as the input variable name.
+Example: math.sin(a)
+]])
+    gui.add('Edit', 'EditFunction', 'Function')
+    gui.set('EditFunction', 'Text', self.parameter.f)
+    gui.setSize()
+  end,
+
+  apply = function(self)
+    self.parameter.f = gui.get('EditFunction', 'Text')
+  end,
+
+  close = function()
+  end,
+
+  avatar = function(self)
+    return block.getDefaultAvatar(0x50, "'f(a)'")
+  end,
+
+  generate = function(self)
+    local source =
+      [==[
+        local block = {}
+
+        block.start = function()
+          local f, e = load('a = ... return F')
+          assert(f, e)
+          block.f = f
+        end
+
+        block.step = function(a)
+          local q = block.f(a)
+          return q
+        end
+
+        return block
+      ]==]
+    local replaces = {
+      ['F'] = self.parameter.f
+    }
+    return string.gsub(source, '%a+', replaces)
+  end,
+
+}
+
